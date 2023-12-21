@@ -15,7 +15,7 @@ jobs:
           submodules: true
       - run: |
           latest_git_version=$(gh api repos/git/git/tags --jq '.[].name' | grep -Eo '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | head -n1)
-          local_git_version=$(git describe --tags)
+          local_git_version=$(git -C git describe --tags)
           if [[ $local_git_version != $latest_git_version ]]; then
             git -C git checkout "v$latest_git_version"
           fi
