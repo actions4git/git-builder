@@ -1,3 +1,4 @@
+name: gh release create
 on:
   push:
     branches: "main"
