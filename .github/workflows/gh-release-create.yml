@@ -2,7 +2,9 @@ name: gh release create
 on:
   push:
     branches: "main"
-    paths: git
+    paths:
+      - git
+      - git/**
   workflow_dispatch:
 concurrency: ${{ github.workflow }}
 jobs:
@@ -10,6 +12,8 @@ jobs:
     uses: ./.github/workflows/build.yml
   gh-release-create:
     needs: build
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
