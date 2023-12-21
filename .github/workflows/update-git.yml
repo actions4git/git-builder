@@ -1,0 +1,24 @@
+name: Update git
+on:
+  schedule:
+    - cron: "19 */6 * * *"
+  workflow_dispatch:
+concurrency: ${{ github.workflow }}
+jobs:
+  update-git:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # A Deploy Key with write permissions to trigger 'on: push'.
+          ssh-key: ${{ secrets.SELF_DEPLOY_KEY }}
+          submodules: true
+      - run: |
+          latest_git_version=$(gh api repos/git/git/tags --jq '.[].name' | grep -Eo '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | head -n1)
+          local_git_version=$(git describe --tags)
+          if [[ $local_git_version != $latest_git_version ]]; then
+            git -C git checkout "v$latest_git_version"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions4git/add-commit-push@v1
