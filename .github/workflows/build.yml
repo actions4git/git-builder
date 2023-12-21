@@ -33,6 +33,8 @@ jobs:
         with:
           submodules: true
       - run: |
+          sudo apt-get install gettext -y
+      - run: |
           make configure
           ./configure --prefix=/usr/local
           make all
