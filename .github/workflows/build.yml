@@ -24,9 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { os: ubuntu-latest }
-          - { os: macos-latest }
+        os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-11, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -34,9 +32,13 @@ jobs:
           submodules: true
       - if: runner.os == 'Linux'
         run: sudo apt-get install gettext -y
-      - run: |
-          make configure
-          ./configure --prefix=/usr/local
-          make all
+      - run: make
         working-directory: git
-      - run: tree -a || ls -A
+      - uses: actions/upload-artifacts@v4
+        with:
+          name: ${{ matrix.os }}
+          path: |
+            git/*
+            git/**
+            git/.*
+            git/.**
