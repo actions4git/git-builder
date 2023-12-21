@@ -34,7 +34,7 @@ jobs:
         run: sudo apt-get install gettext -y
       - run: make
         working-directory: git
-      - uses: actions/upload-artifacts@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}
           path: |
