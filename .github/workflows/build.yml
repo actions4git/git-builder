@@ -32,7 +32,10 @@ jobs:
           submodules: true
       - if: runner.os == 'Linux'
         run: sudo apt-get install gettext -y
-      - run: make
+      - run: |
+          make configure
+          ./configure --prefix=/usr/local
+          make all
         working-directory: git
       - uses: actions/upload-artifact@v4
         with:
