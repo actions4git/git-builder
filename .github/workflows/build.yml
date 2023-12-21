@@ -1,13 +1,13 @@
 name: Build
 on:
-  push:
-    branches: "main"
-    paths-ignore:
-      - README.md
-      - LICENSE
-      - .gitignore
-      - .github/**
-      - "!.github/workflows/build.yml"
+  # push:
+  #   branches: "main"
+  #   paths-ignore:
+  #     - README.md
+  #     - LICENSE
+  #     - .gitignore
+  #     - .github/**
+  #     - "!.github/workflows/build.yml"
   pull_request:
     paths-ignore:
       - README.md
