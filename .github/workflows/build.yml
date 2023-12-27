@@ -15,7 +15,6 @@ on:
       - .gitignore
       - .github/**
       - "!.github/workflows/build.yml"
-  workflow_call:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -34,14 +33,11 @@ jobs:
         run: sudo apt-get install gettext -y
       - run: |
           make configure
-          ./configure --prefix=/usr/local
+          ./configure --prefix=$(pwd)/out
           make all
+          sudo make install
         working-directory: git
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}
-          path: |
-            git/*
-            git/**
-            git/.*
-            git/.**
+          path: git/out

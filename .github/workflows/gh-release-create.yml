@@ -8,13 +8,68 @@ on:
   workflow_dispatch:
 concurrency: ${{ github.workflow }}
 jobs:
+  get-data:
+    outputs:
+      my-latest-release-tag: ${{ steps.get-my-latest-release-tag.outputs.my-latest-release-tag }}
+      latest-git-tag: ${{ steps.get-latest-git-tag.outputs.latest-git-tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - id: my-latest-release-tag
+        run: |
+          my_latest_release_tag=$(gh release view --json tagName --jq '.tagName' || true)
+          echo "my-latest-release-tag=$my_latest_release_tag" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: get-latest-git-tag
+        run: |
+          latest_git_tag=$(gh api repos/git/git/tags --jq '.[].name' | head -n1)
+          echo "latest-git-tag=$latest_git_tag" >> "$GITHUB_OUTPUT"
   build:
-    uses: ./.github/workflows/build.yml
+    needs: get-data
+    if: |
+      needs.get-data.outputs.my-latest-release-tag != needs.get-data.outputs.latest-git-tag
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04, ubuntu-22.04, macos-12, macos-11, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y \
+            dh-autoreconf libcurl4-gnutls-dev libexpat1-dev \
+            gettext libz-dev libssl-dev
+      - run: |
+          ./configure --prefix=/usr/local
+          make
+          DESTDIR=$(PWD)/dist make install
+        working-directory: git
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}
+          path: git/dist
   gh-release-create:
-    needs: build
+    needs: [get-data, build]
     permissions:
       contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
-      - run: tree -a
+        with:
+          path: artifacts
+      - run: |
+          for d in artifacts/*; do
+            name=$(basename "$d")
+            tar -czvf "git-$name.tar.gz" "$d"
+            rm -rf "$d"
+          done
+      - run: gh release create "$TAG" ./*
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.get-data.}}

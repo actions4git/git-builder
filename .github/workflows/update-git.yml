@@ -17,11 +17,11 @@ jobs:
           ssh-key: ${{ secrets.SELF_DEPLOY_KEY }}
           submodules: true
       - run: |
-          latest_git_version=$(gh api repos/git/git/tags --jq '.[].name' | grep -Eo '[0-9]{1,}.[0-9]{1,}.[0-9]{1,}$' | head -n1)
+          latest_git_tag=$(gh api repos/git/git/tags --jq '.[].name' | head -n1)
           git -C git fetch --all --tags --prune
-          local_git_version=$(git -C git describe --tags)
-          if [[ $local_git_version != $latest_git_version ]]; then
-            git -C git checkout "v$latest_git_version"
+          local_git_tag=$(git -C git describe --tags)
+          if [[ $local_git_tag != $latest_git_tag ]]; then
+            git -C git checkout "$latest_git_tag"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
